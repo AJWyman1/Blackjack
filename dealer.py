@@ -5,54 +5,38 @@ class Dealer(Player):
 
     def __init__(self, shoe):
         self.hand = []
+        shoe.shuffle()
         self.shoe = shoe
 
     def play(self):
-        self.points, self.aces = self.sum_points(self.hand)
+        self.sum_points()
         if (self.points < 17 or (self.points == 17 and self.aces)):
-            self.hit()
+            self.hand.append(self.hit())
+            self.play()
+        else:
+            self.stand()
 
     def hit(self):
-        self.hand.append(self.shoe.cards.pop())
+        return self.shoe.deal()
 
     def stand(self):
-        pass
+        if self.shoe.check_shuffle():
+            pass#self.deal()
+            
+
+    def deal(self):
+        return [self.shoe.deal(), self.shoe.deal()]
+
+def play_hand(dealer):
+    dealer.hand = dealer.deal()
+    dealer.play()
+    print(dealer.hand)
+    print(dealer.sum_points())
 
 if __name__ == "__main__":
     deck = Deck()
     deck.shuffle()
     dealer = Dealer(deck)
-    dealer.hit()
-    dealer.hit()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
-    dealer.play()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
 
-    dealer.hand = []
-    dealer.hit()
-    dealer.hit()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
-    dealer.play()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
-
-    dealer.hand = []
-    dealer.hit()
-    dealer.hit()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
-    dealer.play()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
-
-    dealer.hand = []
-    dealer.hit()
-    dealer.hit()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
-    dealer.play()
-    print(dealer.hand)
-    print(dealer.sum_points(dealer.hand))
+    for _ in range(30):
+        play_hand(dealer)
