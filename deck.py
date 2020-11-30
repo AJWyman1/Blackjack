@@ -4,13 +4,14 @@ from random import shuffle
 
 class Deck(object):
 
-    def __init__(self, num_decks = 1):
+    def __init__(self, num_decks = 1 , depth = 7):
         self.cards = [] 
         self.num_decks = num_decks
         for _ in range(self.num_decks):
             for rank in range(1,14):
                 for suit in ("♠", "♣", "♡", "♢"):
                     self.cards.append(Card(rank, suit))
+        self.depth = depth
 
     def __str__(self):
         string = ""
@@ -24,9 +25,9 @@ class Deck(object):
     def deal(self):
         return self.cards.pop()
 
-    def check_shuffle(self, depth=7):
-        if len(self.cards) < (self.num_decks * 52 / depth):
-            self.__init__()
+    def check_shuffle(self):
+        if len(self.cards) < (self.num_decks * 52 / self.depth):
+            self.__init__(num_decks=self.num_decks, depth=self.depth)
             self.shuffle()
             print('Shuffled')
             return True

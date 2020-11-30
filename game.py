@@ -9,30 +9,41 @@ class Game(object):
         self.dealer = dealer
 
     def deal_everyone(self):
-        self.player.hand = dealer.deal()
-        self.dealer.hand = dealer.deal()
+        self.player.hand = self.dealer.deal()
+        self.dealer.hand = self.dealer.deal()
 
     def play_hand(self):
-        if self.player.sum_points()[0] == 21:
+        #First, update the points for player and dealer
+        self.player.sum_points()
+        self.dealer.sum_points()
+
+        #Checks for a player Blackjack and returns the winner
+        if self.player.points == 21:
             #Natural Black jack pays out immediatly unless dealer also had blackjack
-            if self.dealer.sum_points()[0] < 21:
+            if self.dealer.points < 21:
                 #player win
                 self.print_hands()
-                return 'Player'
-            elif self.dealer.sum_points()[0] == 21:
+                return 'Blackjack'
+            elif self.dealer.points == 21:
                 #Player push
                 self.print_hands()
                 return 'Push'
         else:
-            #play normal no blackjack
-            self.player.play_like_dealer(self.dealer)
+            #play normal, no blackjack
+            self.player.play(self.dealer)
+            #Check for player bust
             if self.player.points <= 21:
+                #No bust, Dealer plays
                 self.dealer.play()
                 self.print_hands()
-                if dealer.points > 21 or player.points > dealer.points:
+                #If dealer busts or player points higher, player wins
+                #Might want to add dealer bust column in analysis table
+                if self.dealer.points > 21 or self.player.points > self.dealer.points:
                     return 'Player'
-                elif dealer.points == player.points:
+                #Tie - Push
+                elif self.dealer.points == self.player.points:
                     return  'Push'
+                #Dealer wins
                 else:
                     return 'Dealer'
             else:
@@ -42,6 +53,7 @@ class Game(object):
 
 
     def print_hands(self):
+        # Helper function to visualize player and dealer hands
         print(self.player.hand)
         print(self.dealer.hand)
         print("----------")
@@ -54,7 +66,7 @@ def play_round(game):
 if __name__ == "__main__":
     deck = Deck(num_decks=7)
     dealer = Dealer(deck)
-    player = Player()
+    player = Player(play_like_dealer=True)
     game = Game(player, dealer)
 
     for _ in range(10):

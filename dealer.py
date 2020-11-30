@@ -21,11 +21,15 @@ class Dealer(Player):
 
     def stand(self):
         if self.shoe.check_shuffle():
-            pass#self.deal()
+            #future home of card counter's count reset
+            pass
             
-
     def deal(self):
         return [self.shoe.deal(), self.shoe.deal()]
+
+    def up_card(self):
+        return self.hand[0]
+
 
 def play_hand(dealer):
     dealer.hand = dealer.deal()
