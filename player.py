@@ -1,9 +1,53 @@
 class Player(object):
 
-    def __init__(self, play_like_dealer=False):
+    def __init__(self, play_like_dealer=False, basic_strategy=False):
         # self.name = name
         self.hand = []
         self.play_like_dealer = play_like_dealer
+        self.basic_strategy = basic_strategy
+        self.double = False
+
+        if self.basic_strategy:
+
+            self.b_hard_strategy ={    #  8,   9,  10,  11,  12,  13,  14,  15,  16,  17
+                                    11:['hit', 'hit', 'hit', 'double', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand'],
+                                    10:['hit', 'hit', 'hit', 'double', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand'],
+                                    9: ['hit', 'hit', 'double', 'double', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand'],
+                                    8: ['hit', 'hit', 'double', 'double', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand'],
+                                    7: ['hit', 'hit', 'double', 'double', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand'],
+                                    6: ['hit', 'double', 'double', 'double', 'stand', 'stand', 'stand', 'stand', 'stand', 'stand'],
+                                    5: ['hit', 'double', 'double', 'double', 'stand', 'stand', 'stand', 'stand', 'stand', 'stand'],
+                                    4: ['hit', 'double', 'double', 'double', 'stand', 'stand', 'stand', 'stand', 'stand', 'stand'],
+                                    3: ['hit', 'double', 'double', 'double', 'hit', 'stand', 'stand', 'stand', 'stand', 'stand'],
+                                    2: ['hit', 'hit', 'double', 'double', 'hit', 'stand', 'stand', 'stand', 'stand', 'stand']
+                }
+
+            self.b_soft_strategy = {  #  A2,  A3,  A4,  A5,  A6,  A7,  A8,  A9
+                                    11:['hit', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand', 'stand'],
+                                    10:['hit', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand', 'stand'],
+                                    9: ['hit', 'hit', 'hit', 'hit', 'hit', 'hit', 'stand', 'stand'],
+                                    8: ['hit', 'hit', 'hit', 'hit', 'hit', 'stand', 'stand', 'stand'],
+                                    7: ['hit', 'hit', 'hit', 'hit', 'hit', 'stand', 'stand', 'stand'],
+                                    6: ['double', 'double', 'double', 'double', 'double', 'double', 'double', 'stand'],
+                                    5: ['double', 'double', 'double', 'double', 'double', 'double', 'stand', 'stand'],
+                                    4: ['hit', 'hit', 'double', 'double', 'double', 'double', 'stand', 'stand'],
+                                    3: ['hit', 'hit', 'hit', 'hit', 'double', 'double', 'stand', 'stand'],
+                                    2: ['hit', 'hit', 'hit', 'hit', 'hit', 'double', 'stand', 'stand']
+                        }
+
+            self.b_pair_strategy = {  #  22,  33,  44,  55,  66,  77,  88,  99,  TT,  AA
+                                    11:['n', 'n', 'n', 'n', 'n', 'n', 'y', 'n', 'n', 'y'],
+                                    10:['n', 'n', 'n', 'n', 'n', 'n', 'y', 'n', 'n', 'y'],
+                                    9: ['n', 'n', 'n', 'n', 'n', 'n', 'y', 'y', 'n', 'y'],
+                                    8: ['n', 'n', 'n', 'n', 'n', 'n', 'y', 'y', 'n', 'y'],
+                                    7: ['y', 'y', 'n', 'n', 'n', 'y', 'y', 'n', 'n', 'y'],
+                                    6: ['y', 'y', 'y', 'n', 'y', 'y', 'y', 'y', 'n', 'y'],
+                                    5: ['y', 'y', 'y', 'n', 'y', 'y', 'y', 'y', 'n', 'y'],
+                                    4: ['y', 'y', 'n', 'n', 'y', 'y', 'y', 'y', 'n', 'y'],
+                                    3: ['y', 'y', 'n', 'n', 'y', 'y', 'y', 'y', 'n', 'y'],
+                                    2: ['y', 'y', 'n', 'n', 'y', 'y', 'y', 'y', 'n', 'y']
+                        }
+        
 
     def sum_points(self):
         self.points = 0
@@ -20,6 +64,19 @@ class Player(object):
 
         return self.points, self.aces
 
+    def play(self, dealer):
+        if self.play_like_dealer:
+            if len(self.hand) == 2:
+                self.initial_points, _ = self.sum_points()
+            self.like_dealer(dealer)
+        elif self.basic_strategy:
+            if len(self.hand) == 2:
+                self.initial_points, _ = self.sum_points()
+            self.basic_strat(dealer)
+
+    def initial_cards(self):
+        return self.hand[:2]
+    
     def like_dealer(self, dealer):
         self.sum_points()
         if (self.points < 17 or (self.points == 17 and self.aces)):
@@ -27,6 +84,41 @@ class Player(object):
             self.like_dealer(dealer)
         self.sum_points()
 
-    def play(self, dealer):
-        if self.play_like_dealer:
-            self.like_dealer(dealer)
+    def get_hand_type(self):
+        if self.hand[0] == self.hand[1]:
+            self.hand_type = 'pair'
+        elif self.aces:
+            self.hand_type = 'soft'
+        else:
+            self.hand_type = 'hard'
+
+    def basic_strat(self, dealer):
+        up = dealer.up_card().points #get dealer visible points
+        self.sum_points() # update point total and aces
+        
+        if len(self.hand) == 2:
+            self.get_hand_type()
+        else: self.hand_type = 'hard'
+
+        if self.hand_type == 'pair':
+            move = self.b_pair_strategy[up][self.hand[0].points - 2]
+            if move == 'n':
+                self.hand_type = 'hard'
+        elif self.hand_type == 'soft':
+            move = self.b_soft_strategy[up][self.points - 13]
+        if self.hand_type == 'hard':
+            if self.points < 8:
+                move = 'hit'
+            elif self.points > 17:
+                move = 'stand'
+            else:
+                move = self.b_hard_strategy[up][self.points - 8]
+
+        print(move)
+        if move == 'hit':
+            self.hand.append(dealer.hit())
+            self.basic_strat(dealer)
+        elif move == 'double':
+            self.double = True
+            self.hand.append(dealer.hit())
+        self.sum_points()

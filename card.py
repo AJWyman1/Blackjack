@@ -23,10 +23,22 @@ class Card(object):
 
         return f'{self.suit}{cards[self.rank]}'
 
+    def __add__(self, other):
+        return self.points + other.points
+
+    def __eq__(self, other):
+        return self.points == other.points
+
 if __name__ == "__main__":
     ace_of_spades = Card(1, '♠')
-    ten_of_diamonds = Card(13, '♢')
+    ten_of_diamonds = Card(10, '♢')
 
-    print(ace_of_spades.color)
-    print(ten_of_diamonds.color)
+    print(ace_of_spades)
+    print(ten_of_diamonds)
+
+    lst = [ace_of_spades, ten_of_diamonds]
+
+    print(ace_of_spades + ten_of_diamonds)
+
+    print(ace_of_spades == ten_of_diamonds)
 
