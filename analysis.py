@@ -13,18 +13,20 @@ make_data = False
 def play_round(game):
     game.deal_everyone()
     # game.print_hands()
-    winner, double = game.play_hand()
-    hand = {'player_hand':str(game.player.hand).strip("[]").replace(',',''), 
-            'dealer_hand':str(game.dealer.hand).strip("[]").replace(',',''), 
-            'player_inital':str(game.player.initial_cards()).strip("[]").replace(',',''),
-            'dealer_upcard':str(game.dealer.up_card()).strip("[]").replace(',',''), 
-            'player_initial_points':game.player.initial_points,
-            'dealer_initial_points':game.dealer.up_card().points,
-            'player_points':game.player.points, 
-            'dealer_points':game.dealer.points, 
-            'winner':winner,
-            'double':double}
+    winner, double, split = game.play_hand()
+    hand = {'player_hand': str(game.player.hand).strip("[]").replace(',', ''),
+            'dealer_hand': str(game.dealer.hand).strip("[]").replace(',', ''),
+            'player_inital': str(game.player.initial_cards).strip("[]").replace(',', ''),
+            'dealer_upcard': str(game.dealer.up_card()).strip("[]").replace(',', ''),
+            'player_initial_points': game.player.initial_points,
+            'dealer_initial_points': game.dealer.up_card().points,
+            'player_points': game.player.points,
+            'dealer_points': game.dealer.points,
+            'winner': winner,
+            'double': double,
+            'split': split}
     return hand
+
 
 def analyze_game(df):
     df['player_busted'] = df.apply(lambda row: 1 if row['player_points'] > 21 else 0, axis=1)
@@ -32,18 +34,32 @@ def analyze_game(df):
     df['player_win'] = df.apply(lambda row: 1 if row['winner'] == 'Player' or row['winner'] == 'Blackjack' else 0, axis=1)
     df['player_lose'] = df.apply(lambda row: 1 if row['winner'] == 'Dealer' else 0, axis=1)
     df['blackjack'] = df.apply(lambda row: 1 if row['winner'] == 'Blackjack' else 0, axis=1)
+    df['double_win'] = df.apply(lambda row: 1 if row['winner'] == 'Player' and row['double'] == 1 else 0, axis=1)
+    df['double_lose'] = df.apply(lambda row: 1 if row['winner'] == 'Dealer' and row['double'] == 1 else 0, axis=1)
 
     return df
+
 
 def create_blackjack_data(game):
     df = pd.DataFrame(data=play_round(game), index=[0])
 
     for _ in range(10000):
-        df2 = pd.DataFrame(data=play_round(game), index=[0])
+        hand_data = play_round(game)
+        df2 = pd.DataFrame(data=hand_data, index=[0])
+        if hand_data['split'] == 1:
+            # get the second hand
+            # split_hand = hand_data.copy()
+            # split_hand['player_hand'] =
+            # split_hand['player_points'] =
+            # split_hand['winner'] =
+            # split_hand['double'] =
+            # df2 = pd.DataFrame(data=split_hand, index=[1])
+            pass
         df = df.append(df2, ignore_index=True)
 
     df = analyze_game(df)
     return df
+
 
 def busted_per_starting_points(df):
 
@@ -58,6 +74,7 @@ def busted_per_starting_points(df):
     ax.set_title('Times Player Busted for Each Starting Total')
     plt.show()
 
+
 def wins_per_upcard(df):
 
     s = df.player_win.groupby(df.dealer_initial_points).sum().reset_index()
@@ -71,17 +88,21 @@ def wins_per_upcard(df):
     ax.set_title('Times Player Won for Each Dealer Upcard')
     plt.show()
 
+
+def like_dealer_data():
+    deck = Deck(num_decks=7, depth=7)
+    dealer = Dealer(deck)
+    player = Player(play_like_dealer=True)
+    game = Game(player, dealer)
+
+    like_dealer_df = create_blackjack_data(game)
+    like_dealer_df.to_csv('data/dealerbot_7_7.csv')
+
+
 if __name__ == "__main__":
 
     if make_data:
-
-        deck = Deck(num_decks=7, depth=7)
-        dealer = Dealer(deck)
-        player = Player(play_like_dealer=True)
-        game = Game(player, dealer)
-
-        like_dealer_df = create_blackjack_data(game)
-        like_dealer_df.to_csv('data/dealerbot_7_7.csv')
+        like_dealer_data()
 
     df = pd.read_csv('data/dealerbot_7_7.csv')
     print(df.head(15).T)
